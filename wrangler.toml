@@ -22,8 +22,15 @@ enabled = true
 # - https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 # Note: Use secrets to store sensitive data.
 # - https://developers.cloudflare.com/workers/configuration/secrets/
-# [vars]
-# MY_VARIABLE = "production_value"
+[vars]
+OPENAI_API_MODEL = "chatgpt-4o-latest"
+OPENAI_TOKEN_COEFFICIENT = 1.33
+OPENAI_CONCISE_MIN_TOKEN_COUNT = 150
+OPENAI_BULLET_MIN_TOKEN_COUNT = 250
+OPENAI_DETAILED_MIN_TOKEN_COUNT = 300
+OPENAI_CONCISE_TEMPERATURE = 0.3
+OPENAI_BULLET_TEMPERATURE = 0.4
+OPENAI_DETAILED_TEMPERATURE = 0.5
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#workers-ai
