@@ -4,7 +4,7 @@ import { SummaryOptions } from '../types';
 export class OpenAIService {
 	private client: OpenAI;
 
-	constructor(private readonly apiKey: string) {
+	constructor(apiKey: string, private readonly options: SummaryOptions) {
 		if (! apiKey) {
 			throw new OpenAI.OpenAIError('OpenAI API key is required');
 		}
@@ -12,22 +12,22 @@ export class OpenAIService {
 		this.client = new OpenAI({ apiKey });
 	}
 
-	async summarize(content: string, options: SummaryOptions): Promise<string> {
+	async summarize(content: string): Promise<string> {
 		try {
 			const response = await this.client.chat.completions.create({
-				model: options.model,
+				model: this.options.model,
 				messages: [
 					{
 						role: 'system',
-						content: this.systemPrompt(options.style, options.wordCount)
+						content: this.systemPrompt()
 					},
 					{
 						role: 'user',
 						content
 					}
 				],
-				temperature: options.temperatures[options.style],
-				max_tokens: this.calculateMaxTokens(options.style, options.wordCount, options.minTokenCount),
+				temperature: this.options.temperatures[this.options.style],
+				max_tokens: this.calculateMaxTokens(),
 			});
 
 			return response.choices[0].message.content?.trim() ?? '';
@@ -45,32 +45,28 @@ export class OpenAIService {
 		}
 	}
 
-	private systemPrompt(style: SummaryOptions['style'] = 'concise', wordCount: SummaryOptions['wordCount'] = 150): string {
+	private systemPrompt(): string {
 		const prompts = {
 			'concise': 'Create a clear and concise summary',
 			'bullet-points': 'Create a bullet-point summary with key points',
 			'detailed': 'Create a comprehensive and detailed summary'
 		};
 
-		return `You are a content summarizer specialized in creating ${style} summaries.
-			${prompts[style]} of approximately ${wordCount} words.
+		return `You are a content summarizer specialized in creating ${this.options.style} summaries.
+			${prompts[this.options.style]} of approximately ${this.options.wordCount} words.
 			Focus on the main ideas and key information.
 			Maintain a professional and objective tone.`;
 	}
 
-	private calculateMaxTokens(
-		style: SummaryOptions['style'],
-		wordCount: SummaryOptions['wordCount'],
-		minTokenCount: SummaryOptions['minTokenCount']
-	): number {
-		const baseTokens = Math.ceil((wordCount ?? 150) * 1.33);
+	private calculateMaxTokens(): number {
+		const baseTokens = Math.ceil((this.options.wordCount ?? 150) * this.options.tokenCoefficient);
 
 		const tokensPerStyle = {
-			'concise': Math.min(baseTokens, minTokenCount.concise),
-			'bullet-points': Math.min(baseTokens + 50, minTokenCount['bullet-points']),
-			'detailed': Math.min(baseTokens + 100, minTokenCount.detailed)
+			'concise': Math.min(baseTokens, this.options.minTokenCount.concise),
+			'bullet-points': Math.min(baseTokens + 50, this.options.minTokenCount['bullet-points']),
+			'detailed': Math.min(baseTokens + 100, this.options.minTokenCount.detailed)
 		}
 
-		return tokensPerStyle[style];
+		return tokensPerStyle[this.options.style];
 	}
 }
