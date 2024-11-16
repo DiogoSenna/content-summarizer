@@ -6,7 +6,7 @@ export class OpenAIService {
 
 	constructor(private readonly apiKey: string) {
 		if (! apiKey) {
-			throw new Error('OpenAI API key is required');
+			throw new OpenAI.OpenAIError('OpenAI API key is required');
 		}
 
 		this.client = new OpenAI({ apiKey });
