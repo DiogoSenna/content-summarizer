@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { SummaryOptions } from '../types';
 
-export class OpenAIService {
+export class ContentSummarizerService {
 	private client: OpenAI;
 
 	constructor(apiKey: string, private readonly options: SummaryOptions) {
@@ -12,7 +12,7 @@ export class OpenAIService {
 		this.client = new OpenAI({ apiKey });
 	}
 
-	async summarize(content: string): Promise<string> {
+	async execute(content: string): Promise<string> {
 		try {
 			const response = await this.client.chat.completions.create({
 				model: this.options.model,
