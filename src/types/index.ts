@@ -1,20 +1,26 @@
 import OpenAI from 'openai';
 
-export interface SummaryOptions {
+export interface RequestOptions {
 	style: 'concise' | 'detailed' | 'bullet-points';
 	wordCount?: number;
-	model: string | OpenAI.Chat.ChatModel;
+	model?: string | OpenAI.Chat.ChatModel;
+}
+
+export interface ChatOptions {
 	tokenCoefficient: number;
-	temperatures: {[key in SummaryOptions['style']]: number};
-	minTokenCount: {[key in SummaryOptions['style']]: number};
+	temperatures: {[key in RequestOptions['style']]: number};
+	minTokenCount: {[key in RequestOptions['style']]: number};
+	model: string | OpenAI.Chat.ChatModel;
 }
 
-export interface SummaryRequest {
+export type SummarizerOptions = RequestOptions & ChatOptions;
+
+export interface SummarizerRequest {
 	url: string;
-	options: SummaryOptions;
+	options: RequestOptions;
 }
 
-export interface SummaryResponse {
+export interface SummarizerResponse {
 	summary: string;
 	originalUrl: string;
 	wordCount: number;
