@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
-import { SummaryOptions } from '../types';
+import { SummarizerOptions } from '../types';
 
 export class ContentSummarizerService {
 	private client: OpenAI;
 
-	constructor(apiKey: string, private readonly options: SummaryOptions) {
+	constructor(apiKey: string, private readonly options: SummarizerOptions) {
 		if (! apiKey) {
 			throw new OpenAI.OpenAIError('OpenAI API key is required');
 		}
