@@ -15,7 +15,7 @@ export class OpenAIService {
 	async summarize(content: string, options: SummaryOptions): Promise<string> {
 		try {
 			const response = await this.client.chat.completions.create({
-				model: options.model ?? 'chatgpt-4o-latest',
+				model: options.model,
 				messages: [
 					{
 						role: 'system',
@@ -26,8 +26,8 @@ export class OpenAIService {
 						content
 					}
 				],
-				temperature: this.messageTemperature(options.style),
-				max_tokens: this.calculateMaxTokens(options.style, options.wordCount),
+				temperature: options.temperatures[options.style],
+				max_tokens: this.calculateMaxTokens(options.style, options.wordCount, options.minTokenCount),
 			});
 
 			return response.choices[0].message.content?.trim() ?? '';
@@ -58,23 +58,17 @@ export class OpenAIService {
 			Maintain a professional and objective tone.`;
 	}
 
-	private messageTemperature(style: SummaryOptions['style'] = 'concise'): number {
-		const options = {
-			'concise': 0.3,
-			'bullet-points': 0.4,
-			'detailed': 0.5
-		};
-
-		return options[style];
-	}
-
-	private calculateMaxTokens(style: SummaryOptions['style'] = 'concise', wordCount: SummaryOptions['wordCount'] = 150): number {
-		const baseTokens = Math.ceil(wordCount * 1.33);
+	private calculateMaxTokens(
+		style: SummaryOptions['style'],
+		wordCount: SummaryOptions['wordCount'],
+		minTokenCount: SummaryOptions['minTokenCount']
+	): number {
+		const baseTokens = Math.ceil((wordCount ?? 150) * 1.33);
 
 		const tokensPerStyle = {
-			'concise': Math.min(baseTokens, 150),
-			'bullet-points': Math.min(baseTokens + 50, 250),
-			'detailed': Math.min(baseTokens + 100, 300)
+			'concise': Math.min(baseTokens, minTokenCount.concise),
+			'bullet-points': Math.min(baseTokens + 50, minTokenCount['bullet-points']),
+			'detailed': Math.min(baseTokens + 100, minTokenCount.detailed)
 		}
 
 		return tokensPerStyle[style];
