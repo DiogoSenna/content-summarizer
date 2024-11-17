@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { SummarizerOptions } from '../types';
+import { TokenCalculatorService } from './token-calculator.service';
 
 export class ContentSummarizerService {
 	private client: OpenAI;
@@ -29,7 +30,7 @@ export class ContentSummarizerService {
 					}
 				],
 				temperature: this.options.temperatures[this.options.style],
-				max_tokens: this.calculateMaxTokens(),
+				max_tokens: await this.calculateMaxTokens(content),
 			});
 
 			return response.choices[0].message.content?.trim() ?? '';
@@ -62,13 +63,21 @@ export class ContentSummarizerService {
 			Maintain a professional and objective tone.`;
 	}
 
-	private calculateMaxTokens(): number {
-		const baseTokens = Math.ceil((this.options.wordCount ?? 150) * this.options.tokenCoefficient);
+	private async calculateMaxTokens(content: string): Promise<number> {
+		const contentTokens: number = this.options.wordCount
+			? Math.ceil(this.options.wordCount * this.options.tokenCoefficient)
+			: await (new TokenCalculatorService).execute(content);
+
+		const minTokens = {
+			'concise': Math.max(contentTokens * 0.3, this.options.minTokenCount.concise),
+			'bullet-points': Math.max(contentTokens * 0.5, this.options.minTokenCount['bullet-points']),
+			'detailed': Math.max(contentTokens * 0.7, this.options.minTokenCount.detailed)
+		};
 
 		const tokensPerStyle = {
-			'concise': Math.max(baseTokens, this.options.minTokenCount.concise),
-			'bullet-points': Math.max(baseTokens + 50, this.options.minTokenCount['bullet-points']),
-			'detailed': Math.max(baseTokens + 100, this.options.minTokenCount.detailed)
+			'concise': Math.max(contentTokens, minTokens.concise),
+			'bullet-points': Math.max(contentTokens, minTokens['bullet-points']),
+			'detailed': Math.max(contentTokens, minTokens.detailed)
 		}
 
 		return tokensPerStyle[this.options.style];

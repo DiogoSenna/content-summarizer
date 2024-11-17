@@ -29,8 +29,8 @@ OPENAI_CONCISE_MIN_TOKEN_COUNT = 150
 OPENAI_BULLET_MIN_TOKEN_COUNT = 250
 OPENAI_DETAILED_MIN_TOKEN_COUNT = 300
 OPENAI_CONCISE_TEMPERATURE = 0.3
-OPENAI_BULLET_TEMPERATURE = 0.4
-OPENAI_DETAILED_TEMPERATURE = 0.5
+OPENAI_BULLET_TEMPERATURE = 0.5
+OPENAI_DETAILED_TEMPERATURE = 0.7
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#workers-ai
@@ -119,3 +119,7 @@ OPENAI_DETAILED_TEMPERATURE = 0.5
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[[rules]]
+globs = ["**/*.wasm"]
+type = "CompiledWasm"
