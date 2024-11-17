@@ -10,9 +10,48 @@
  *
  * Learn more at https://developers.cloudflare.com/workers/
  */
+import { SummarizerRequest, SummarizerResponse } from './types';
+import { handleMiddlewares } from './middleware';
+import { ContentExtractorService } from './services/content-extractor.service';
+import { ContentSummarizerService } from './services/content-summarizer.service';
+import { getEnvVars, wordCount } from './utils';
+import { validateUrl } from './middleware/validate-url.middleware';
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+		const middlewares: Response | null = handleMiddlewares(request);
+		if (middlewares) return middlewares;
+
+		const { url, options }: SummarizerRequest = await request.json();
+
+		const urlValidator: Response | null = validateUrl(url);
+		if (urlValidator) return urlValidator;
+
+		const content: string | Response = await (new ContentExtractorService).execute(url);
+		if (typeof content !== 'string') return content;
+
+		const { apiKey, model, tokenCoefficient, minTokenCount, temperatures } = getEnvVars(env);
+		const summarizerService = new ContentSummarizerService(apiKey, {
+			style: options.style,
+			wordCount: options.wordCount,
+			model,
+			tokenCoefficient,
+			minTokenCount,
+			temperatures
+		});
+		const summary: string = await summarizerService.execute(content);
+
+		const responseContent: SummarizerResponse = {
+			summary,
+			originalUrl: url,
+			wordCount: wordCount(summary)
+		};
+
+		return new Response(JSON.stringify(responseContent), {
+			status: 200,
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 	},
 } satisfies ExportedHandler<Env>;
