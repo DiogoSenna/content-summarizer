@@ -1,7 +1,7 @@
 export function getEnvVars(env: Env) {
 	return {
 		apiKey: env.OPENAI_API_KEY,
-		apiModel: env.OPENAI_API_MODEL ?? 'chatgpt-4o-latest',
+		model: env.OPENAI_API_MODEL ?? 'chatgpt-4o-latest',
 		tokenCoefficient: env.OPENAI_TOKEN_COEFFICIENT ?? 1.33,
 		minTokenCount: {
 			'concise': env.OPENAI_CONCISE_MIN_TOKEN_COUNT ?? 150,
