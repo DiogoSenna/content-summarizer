@@ -3,7 +3,6 @@ import OpenAI from 'openai';
 export interface RequestOptions {
 	style: 'concise' | 'detailed' | 'bullet-points';
 	wordCount?: number;
-	model?: string | OpenAI.Chat.ChatModel;
 }
 
 export interface ChatOptions {
