@@ -1,22 +1,17 @@
 import { handleCors } from './cors.middleware';
 import { validateRequest } from './validate-request.middleware';
-import { validateUrl } from './validate-url.middleware';
-import { SummarizerRequest } from '../types';
 
-export async function handleMiddleware(request: Request): Promise<Response|null> {
-	const corsMiddleware = handleCors(request);
-	if (corsMiddleware)
-		return corsMiddleware;
+export function handleMiddlewares(request: Request) {
+	const middlewares = [
+		handleCors,
+		validateRequest
+	];
 
-	const requestMiddleware = validateRequest(request);
-	if (requestMiddleware)
-		return requestMiddleware;
-
-	const { url }: SummarizerRequest = await request.json();
-
-	const urlMiddleware = validateUrl(url);
-	if (urlMiddleware)
-		return urlMiddleware;
+	for (const middleware of middlewares) {
+		const result = middleware(request)
+		if (result)
+			return result;
+	}
 
 	return null;
 }
