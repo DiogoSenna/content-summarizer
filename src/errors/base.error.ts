@@ -26,11 +26,14 @@ export class BaseError extends Error {
 		});
 	}
 
-	toJsonResponse(): Response {
+	toJsonResponse(headers?: Record<string,string>): Response {
+		headers = headers || {};
+
 		return new Response(this.toJson(), {
 			status: this.statusCode ?? 500,
 			headers: {
 				'Content-Type': 'application/json',
+				...headers,
 			}
 		});
 	}

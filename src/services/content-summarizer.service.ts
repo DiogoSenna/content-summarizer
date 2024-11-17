@@ -6,7 +6,9 @@ export class ContentSummarizerService {
 
 	constructor(apiKey: string, private readonly options: SummarizerOptions) {
 		if (! apiKey) {
-			throw new OpenAI.OpenAIError('OpenAI API key is required');
+			const error = new OpenAI.OpenAIError('OpenAI API key is required');
+			console.error(error);
+			throw error;
 		}
 
 		this.client = new OpenAI({ apiKey });
@@ -33,6 +35,8 @@ export class ContentSummarizerService {
 			return response.choices[0].message.content?.trim() ?? '';
 		}
 		catch (error) {
+			console.error(error);
+
 			if (error instanceof OpenAI.APIError) {
 				throw new OpenAI.APIError(error.status, error, error.message, error.headers);
 			}
@@ -62,9 +66,9 @@ export class ContentSummarizerService {
 		const baseTokens = Math.ceil((this.options.wordCount ?? 150) * this.options.tokenCoefficient);
 
 		const tokensPerStyle = {
-			'concise': Math.min(baseTokens, this.options.minTokenCount.concise),
-			'bullet-points': Math.min(baseTokens + 50, this.options.minTokenCount['bullet-points']),
-			'detailed': Math.min(baseTokens + 100, this.options.minTokenCount.detailed)
+			'concise': Math.max(baseTokens, this.options.minTokenCount.concise),
+			'bullet-points': Math.max(baseTokens + 50, this.options.minTokenCount['bullet-points']),
+			'detailed': Math.max(baseTokens + 100, this.options.minTokenCount.detailed)
 		}
 
 		return tokensPerStyle[this.options.style];
