@@ -11,11 +11,10 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 import { SummarizerRequest, SummarizerResponse } from './types';
-import { handleMiddlewares } from './middleware';
+import { handleMiddlewares, validateRequestParams } from './middleware';
 import { ContentExtractorService } from './services/content-extractor.service';
 import { ContentSummarizerService } from './services/content-summarizer.service';
 import { getEnvVars, wordCount } from './utils';
-import { validateUrl } from './middleware/validate-url.middleware';
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
@@ -24,8 +23,8 @@ export default {
 
 		const { url, options }: SummarizerRequest = await request.json();
 
-		const urlValidator: Response | null = validateUrl(url);
-		if (urlValidator) return urlValidator;
+		const requestParamsValidator: Response | null = validateRequestParams({ url, options });
+		if (requestParamsValidator) return requestParamsValidator;
 
 		const content: string | Response = await (new ContentExtractorService).execute(url);
 		if (typeof content !== 'string') return content;
