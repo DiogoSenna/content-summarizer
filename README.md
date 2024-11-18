@@ -48,6 +48,9 @@ OPENAI_CONCISE_MIN_TOKEN_COUNT = 150
 OPENAI_BULLET_MIN_TOKEN_COUNT = 250
 OPENAI_DETAILED_MIN_TOKEN_COUNT = 300
 
+# Maximum token count for input content
+OPENAI_MAX_TOKEN_COUNT = 3000
+
 # Temperature settings for different summary styles
 OPENAI_CONCISE_TEMPERATURE = 0.3    # More focused and precise
 OPENAI_BULLET_TEMPERATURE = 0.5     # Balanced creativity
@@ -68,6 +71,19 @@ OPENAI_API_KEY=your_api_key_here
 
 ```bash
 npm run dev
+```
+
+The development server will start at `http://localhost:8787/`. You can test your local worker using curl or any API testing tool:
+
+```bash
+curl -X POST http://localhost:8787 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/article",
+    "options": {
+      "style": "bullet-points"
+    }
+  }'
 ```
 
 ## Production Deployment
