@@ -8,7 +8,7 @@ export class ContentSummarizerService {
 	constructor(apiKey: string, private readonly options: SummarizerOptions) {
 		if (! apiKey) {
 			const error = new OpenAI.OpenAIError('OpenAI API key is required');
-			console.error(error);
+			console.log(error);
 			throw error;
 		}
 
@@ -36,7 +36,7 @@ export class ContentSummarizerService {
 			return response.choices[0].message.content?.trim() ?? '';
 		}
 		catch (error) {
-			console.error(error);
+			console.log(error);
 
 			if (error instanceof OpenAI.APIError) {
 				throw new OpenAI.APIError(error.status, error, error.message, error.headers);

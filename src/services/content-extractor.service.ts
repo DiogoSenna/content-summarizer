@@ -74,20 +74,19 @@ export class ContentExtractorService {
 	}
 
 	private handleError(error: unknown): Response {
+		console.log(error);
+
 		if (error instanceof ContentExtractionError) {
-			console.error(error.toJson());
 			return error.toJsonResponse();
 		}
 
 		if (error instanceof Error) {
-			console.error(error.message);
 			return new Response(error.message, {
 				status: 500,
 				statusText: 'Internal Server Error'
 			});
 		}
 
-		console.error('Sorry, something went wrong');
 		return new Response('Sorry, something went wrong', {
 			status: 500,
 			statusText: 'Internal Server Error'
