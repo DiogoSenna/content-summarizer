@@ -119,7 +119,3 @@ OPENAI_DETAILED_TEMPERATURE = 0.7
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
-
-[[rules]]
-globs = ["**/*.wasm"]
-type = "CompiledWasm"

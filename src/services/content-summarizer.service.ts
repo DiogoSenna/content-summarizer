@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { SummarizerOptions } from '../types';
-import { TokenCalculatorService } from './token-calculator.service';
+import { wordCount } from '../utils';
 
 export class ContentSummarizerService {
 	private client: OpenAI;
@@ -71,7 +71,7 @@ export class ContentSummarizerService {
 	private async calculateMaxTokens(content: string): Promise<number> {
 		const contentTokens: number = this.options.wordCount
 			? Math.ceil(this.options.wordCount * this.options.tokenCoefficient)
-			: await (new TokenCalculatorService).execute(content);
+			: Math.ceil(wordCount(content) * this.options.tokenCoefficient);
 
 		const minTokens = {
 			'concise': Math.max(contentTokens * 0.3, this.options.minTokenCount.concise),
