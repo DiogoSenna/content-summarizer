@@ -59,7 +59,7 @@ export class RequestValidationMiddleware {
 		return null;
 	}
 
-	validateWordCountParam(wordCount: unknown) {
+	validateWordCountParam(wordCount: unknown): Response | null {
 		if (typeof wordCount !== 'number' && ! Number.isInteger(wordCount)) {
 			const error = new RequestValidationError(
 				`The wordCount parameter must be an integer`,

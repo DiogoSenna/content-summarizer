@@ -5,24 +5,29 @@ import { TokenCalculatorService } from './token-calculator.service';
 export class ContentSummarizerService {
 	private client: OpenAI;
 
-	constructor(apiKey: string, private readonly options: SummarizerOptions) {
+	constructor(apiKey: string, private options: SummarizerOptions) {
 		if (! apiKey) {
 			const error = new OpenAI.OpenAIError('OpenAI API key is required');
 			console.log(error);
 			throw error;
 		}
 
+		this.options.style = options.style ?? 'concise';
+
 		this.client = new OpenAI({ apiKey });
 	}
 
 	async execute(content: string): Promise<string> {
 		try {
+			const max_tokens: number = await this.calculateMaxTokens(content);
+			const wordCount: number = Math.ceil(max_tokens / this.options.tokenCoefficient);
+
 			const response = await this.client.chat.completions.create({
 				model: this.options.model,
 				messages: [
 					{
 						role: 'system',
-						content: this.systemPrompt()
+						content: this.systemPrompt(wordCount)
 					},
 					{
 						role: 'user',
@@ -30,7 +35,7 @@ export class ContentSummarizerService {
 					}
 				],
 				temperature: this.options.temperatures[this.options.style],
-				max_tokens: await this.calculateMaxTokens(content),
+				max_tokens,
 			});
 
 			return response.choices[0].message.content?.trim() ?? '';
@@ -50,7 +55,7 @@ export class ContentSummarizerService {
 		}
 	}
 
-	private systemPrompt(): string {
+	private systemPrompt(wordCount?: number): string {
 		const prompts = {
 			'concise': 'Create a clear and concise summary',
 			'bullet-points': 'Create a bullet-point summary with key points',
@@ -58,7 +63,7 @@ export class ContentSummarizerService {
 		};
 
 		return `You are a content summarizer specialized in creating ${this.options.style} summaries.
-			${prompts[this.options.style]} of approximately ${this.options.wordCount} words.
+			${prompts[this.options.style]} of approximately ${this.options.wordCount ?? wordCount} words.
 			Focus on the main ideas and key information.
 			Maintain a professional and objective tone.`;
 	}
@@ -80,6 +85,6 @@ export class ContentSummarizerService {
 			'detailed': Math.max(contentTokens, minTokens.detailed)
 		}
 
-		return tokensPerStyle[this.options.style];
+		return Math.min(tokensPerStyle[this.options.style], 3000);
 	}
 }
