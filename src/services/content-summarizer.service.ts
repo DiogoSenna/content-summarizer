@@ -90,6 +90,6 @@ export class ContentSummarizerService {
 			'detailed': Math.max(contentTokens, minTokens.detailed)
 		}
 
-		return Math.min(tokensPerStyle[this.options.style], 3000);
+		return Math.min(tokensPerStyle[this.options.style], this.options.maxTokenCount);
 	}
 }

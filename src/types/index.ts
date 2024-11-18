@@ -9,6 +9,7 @@ export interface ChatOptions {
 	tokenCoefficient: number;
 	temperatures: {[key in RequestOptions['style']]: number};
 	minTokenCount: {[key in RequestOptions['style']]: number};
+	maxTokenCount: number;
 	model: string | OpenAI.Chat.ChatModel;
 }
 

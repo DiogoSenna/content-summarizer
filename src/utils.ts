@@ -12,7 +12,8 @@ export function getEnvVars(env: Env) {
 			'concise': env.OPENAI_CONCISE_TEMPERATURE ?? 0.3,
 			'bullet-points': env.OPENAI_BULLET_TEMPERATURE ?? 0.4,
 			'detailed': env.OPENAI_DETAILED_TEMPERATURE ?? 0.5
-		}
+		},
+		maxTokenCount: env.OPENAI_MAX_TOKEN_COUNT ?? 3000
 	};
 }
 
