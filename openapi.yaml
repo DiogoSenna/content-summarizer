@@ -1,0 +1,120 @@
+openapi: 3.0.0
+info:
+    title: Content Summarizer API
+    description: A service that generates summaries of web content using OpenAI's GPT API
+    version: 1.0.0
+servers:
+    - url: https://{worker-subdomain}.workers.dev
+      description: Cloudflare Worker Production Environment
+      variables:
+          worker-subdomain:
+              description: Your worker's subdomain on workers.dev
+              default: your-worker
+paths:
+    /:
+        post:
+            summary: Generate content summary
+            description: Fetches content from a given URL and generates a summary using OpenAI's GPT API
+            operationId: generateSummary
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SummaryRequest'
+            responses:
+                '200':
+                    description: Successfully generated summary
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SummaryResponse'
+                '400':
+                    description: Invalid request parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '422':
+                    description: Validation error or content processing failed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+components:
+    schemas:
+        SummaryRequest:
+            type: object
+            required:
+                - url
+            properties:
+                url:
+                    type: string
+                    format: uri
+                    description: The URL of the content to summarize
+                options:
+                    type: object
+                    properties:
+                        wordCount:
+                            type: number
+                            description: Target summary length in words
+                        style:
+                            type: string
+                            description: The style of the summary
+                            enum:
+                                - concise
+                                - detailed
+                                - bullet-points
+                            default: concise
+        SummaryResponse:
+            type: object
+            required:
+                - summary
+                - originalUrl
+                - wordCount
+            properties:
+                summary:
+                    type: string
+                    description: The generated summary
+                originalUrl:
+                    type: string
+                    format: uri
+                    description: The URL of the original content
+                wordCount:
+                    type: number
+                    description: Actual word count of the generated summary
+        ErrorResponse:
+            type: object
+            required:
+                - name
+                - message
+                - timestamp
+            properties:
+                name:
+                    type: string
+                    description: Error type name
+                    example: RequestValidationError
+                message:
+                    type: string
+                    description: Detailed error message
+                statusCode:
+                    type: number
+                    description: HTTP status code
+                    example: 422
+                code:
+                    type: string
+                    description: Error code identifier
+                    example: UNPROCESSABLE_ENTITY
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: Time when the error occurred
+                stack:
+                    type: string
+                    description: Error stack trace (included in development environment)
