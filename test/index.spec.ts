@@ -1,25 +1,128 @@
 // test/index.spec.ts
-import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
+import { SELF } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
-import worker from '../src/index';
+import { SummarizerRequest, SummarizerResponse } from '../src/types';
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+describe('Content Summarizer Worker POST Endpoint', () => {
+	it('returns a summary for a valid request', async () => {
+		const body: SummarizerRequest = {
+			url: 'https://en.wikipedia.org/wiki/Bitcoin',
+			options: {
+				style: 'bullet-points',
+				wordCount: 450,
+			},
+		};
 
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
-		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(body),
+		});
+
+		expect(response.status).toBe(200);
+
+		const responseBody: SummarizerResponse = await response.json();
+
+		expect(responseBody).toHaveProperty('summary');
+		expect(responseBody).toHaveProperty('originalUrl', body.url);
+		expect(responseBody).toHaveProperty('wordCount');
+		expect(typeof responseBody.summary).toBe('string');
+	}, 15000);
+
+	it('throws http method error when not a POST request', async () => {
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			headers: {'Content-Type': 'application/json'}
+		});
+
+		expect(response.status).toBe(405);
 	});
 
-	it('responds with Hello World! (integration style)', async () => {
-		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+	it('fails returning a summary without a url', async () => {
+		const body = {
+			options: {
+				style: 'bullet-points',
+				wordCount: 450,
+			}
+		};
+
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(body),
+		});
+
+		expect(response.status).toBe(400);
+	});
+
+	it('fails returning a summary with an invalid url', async () => {
+		const body: SummarizerRequest = {
+			url: 'https://en.wikipedia.org/wiki/Bitcoin32423dfsfsd',
+			options: {
+				style: 'bullet-points',
+				wordCount: 450,
+			},
+		};
+
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(body),
+		});
+
+		expect(response.status).toBe(404);
+	});
+
+	it('fails returning a summary with an invalid style', async () => {
+		const body = {
+			url: 'https://en.wikipedia.org/wiki/Bitcoin',
+			options: {
+				style: 'invalid',
+				wordCount: 450,
+			},
+		};
+
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(body),
+		});
+
+		expect(response.status).toBe(422);
+	});
+
+	it('fails returning a summary with an invalid style type', async () => {
+		const body = {
+			url: 'https://en.wikipedia.org/wiki/Bitcoin',
+			options: {
+				style: 123,
+				wordCount: 450,
+			},
+		};
+
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(body),
+		});
+
+		expect(response.status).toBe(422);
+	});
+
+	it('fails returning a summary with an invalid wordCount type', async () => {
+		const body = {
+			url: 'https://en.wikipedia.org/wiki/Bitcoin',
+			options: {
+				style: 123,
+				wordCount: "450",
+			},
+		};
+
+		const response: Response = await SELF.fetch('http://localhost:8787/', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify(body),
+		});
+
+		expect(response.status).toBe(422);
 	});
 });
