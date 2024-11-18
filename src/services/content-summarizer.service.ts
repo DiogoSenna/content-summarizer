@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { SummarizerOptions } from '../types';
 import { wordCount } from '../utils';
+import { OpenaiApiError } from '../errors/openai-api.error';
 
 export class ContentSummarizerService {
 	private client: OpenAI;
@@ -17,7 +18,7 @@ export class ContentSummarizerService {
 		this.client = new OpenAI({ apiKey });
 	}
 
-	async execute(content: string): Promise<string> {
+	async execute(content: string): Promise<string|Response> {
 		try {
 			const max_tokens: number = await this.calculateMaxTokens(content);
 			const wordCount: number = Math.ceil(max_tokens / this.options.tokenCoefficient);
@@ -42,16 +43,20 @@ export class ContentSummarizerService {
 		}
 		catch (error) {
 			console.log(error);
+			let openaiError: OpenaiApiError | null = null;
 
 			if (error instanceof OpenAI.APIError) {
-				throw new OpenAI.APIError(error.status, error, error.message, error.headers);
+				openaiError = new OpenaiApiError(error.message, error.status);
 			}
 
 			if (error instanceof Error) {
-				throw new OpenAI.OpenAIError(`Failed to generate summary: ${error.message}`);
+				openaiError = new OpenaiApiError(error.message);
 			}
 
-			throw new OpenAI.OpenAIError('Failed to generate summary due to an unknown error.');
+			if (openaiError)
+				return openaiError.toJsonResponse();
+
+			return new OpenaiApiError('Failed to generate summary due to an unknown error.').toJsonResponse();
 		}
 	}
 

@@ -38,7 +38,8 @@ export default {
 			minTokenCount,
 			temperatures
 		});
-		const summary: string = await summarizerService.execute(content);
+		const summary: string | Response = await summarizerService.execute(content);
+		if (summary instanceof Response) return summary;
 
 		const responseContent: SummarizerResponse = {
 			summary,
