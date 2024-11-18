@@ -29,13 +29,14 @@ export default {
 		const content: string | Response = await (new ContentExtractorService).execute(url);
 		if (typeof content !== 'string') return content;
 
-		const { apiKey, model, tokenCoefficient, minTokenCount, temperatures } = getEnvVars(env);
+		const { apiKey, model, tokenCoefficient, minTokenCount, maxTokenCount, temperatures } = getEnvVars(env);
 		const summarizerService = new ContentSummarizerService(apiKey, {
 			style: options.style,
 			wordCount: options.wordCount,
 			model,
 			tokenCoefficient,
 			minTokenCount,
+			maxTokenCount,
 			temperatures
 		});
 		const summary: string | Response = await summarizerService.execute(content);
